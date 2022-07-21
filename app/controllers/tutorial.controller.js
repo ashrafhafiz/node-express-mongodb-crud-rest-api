@@ -1,3 +1,9 @@
+const getPagination = (page, size) => {
+  const limit = size ? +size : 3;
+  const offset = page ? page * limit : 0;
+  return { limit, offset };
+};
+
 export const create = async (req, res) => {
   // 1. Validate request
   if (!req.body.title) {
@@ -23,13 +29,25 @@ export const create = async (req, res) => {
 
 // Retrieve all Tutorials from the database.
 export const findAll = async (req, res) => {
-  const title = req.query.title;
+  // const title = req.query.title;
+  const { title, page, size } = req.query;
   var condition = title
     ? { title: { $regex: new RegExp(title), $options: "i" } }
     : {};
+  const { limit, offset } = getPagination(page, size);
   try {
-    const result = await req.context.models.Tutorial.find(condition);
-    res.status(200).send({ result });
+    // const result = await req.context.models.Tutorial.find(condition);
+    const result = await req.context.models.Tutorial.paginate(condition, {
+      limit,
+      offset,
+    });
+    // res.status(200).send({ result });
+    res.status(200).send({
+      totalItems: result.totalDocs,
+      tutorials: result.docs,
+      totalPages: result.totalPages,
+      currentPage: result.page - 1,
+    });
   } catch (error) {
     res.status(500).send({
       message: err.message || "Some error occurred while retrieving tutorials.",
@@ -116,14 +134,25 @@ export const deleteAll = async (req, res) => {
 };
 // Find all published Tutorials
 export const findAllPublished = async (req, res) => {
+  const { page, size } = req.query;
+  const { limit, offset } = getPagination(page, size);
   try {
-    const result = await req.context.models.Tutorial.find({ published: true });
+    const result = await req.context.models.Tutorial.paginate(
+      { published: true },
+      { offset, limit }
+    );
     if (!result) {
       return res.status(404).send({
         message: `No Tutorials were found!`,
       });
     }
-    return res.status(200).send({ result });
+    // return res.status(200).send({ result });
+    res.status(200).send({
+      totalItems: result.totalDocs,
+      tutorials: result.docs,
+      totalPages: result.totalPages,
+      currentPage: result.page - 1,
+    });
   } catch (error) {
     res.status(500).send({
       message:

@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import mongoosePaginate from "mongoose-paginate-v2";
 
 const tutorialSchema = mongoose.Schema(
   {
@@ -14,6 +15,8 @@ tutorialSchema.method("toJSON", function () {
   object.id = _id;
   return object;
 });
+
+tutorialSchema.plugin(mongoosePaginate);
 
 const Tutorial = mongoose.model("tutorials", tutorialSchema);
 
