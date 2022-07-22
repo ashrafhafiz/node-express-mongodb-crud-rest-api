@@ -1,3 +1,4 @@
 .env
 /node_modules
 /.vscode
+/react-material-ui-crud/node_modules
