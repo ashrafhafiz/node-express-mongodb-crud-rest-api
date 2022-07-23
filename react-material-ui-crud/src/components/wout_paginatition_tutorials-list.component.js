@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 import TutorialDataService from "../services/tutorial.service";
 import { Link } from "react-router-dom";
-import Pagination from "@material-ui/lab/Pagination";
 
 import { styles } from "../css-common";
 import {
@@ -21,19 +20,13 @@ class TutorialsList extends Component {
     this.setActiveTutorial = this.setActiveTutorial.bind(this);
     this.removeAllTutorials = this.removeAllTutorials.bind(this);
     this.searchTitle = this.searchTitle.bind(this);
-    this.handlePageChange = this.handlePageChange.bind(this);
-    this.handlePageSizeChange = this.handlePageSizeChange.bind(this);
 
     this.state = {
       tutorials: [],
       currentTutorial: null,
       currentIndex: -1,
       searchTitle: "",
-      page: 1,
-      count: 0,
-      pageSize: 3,
     };
-    this.pageSizes = [3, 6, 9];
   }
 
   componentDidMount() {
@@ -42,52 +35,23 @@ class TutorialsList extends Component {
 
   onChangeSearchTitle(e) {
     const searchTitle = e.target.value;
+
     this.setState({
       searchTitle: searchTitle,
     });
   }
 
-  getRequestParams(searchTitle, page, pageSize) {
-    let params = {};
-    if (searchTitle) {
-      params["title"] = searchTitle;
-    }
-    if (page) {
-      params["page"] = page - 1;
-    }
-    if (pageSize) {
-      params["size"] = pageSize;
-    }
-    return params;
-  }
-
   retrieveTutorials() {
-    const { searchTitle, page, pageSize } = this.state;
-    const params = this.getRequestParams(searchTitle, page, pageSize);
-    TutorialDataService.getAll(params)
+    TutorialDataService.getAll()
       .then((response) => {
-        const { tutorials, totalPages } = response.data;
         this.setState({
-          tutorials: tutorials,
-          count: totalPages,
-          searchTitle: searchTitle,
+          tutorials: response.data.tutorials,
         });
         console.log("getting all data: ", response.data);
       })
       .catch((e) => {
         console.log(e);
       });
-  }
-  handlePageChange(event, value) {
-    this.setState({ page: value }, () => {
-      this.retrieveTutorials();
-    });
-  }
-
-  handlePageSizeChange(event) {
-    this.setState({ pageSize: event.target.value, page: 1 }, () => {
-      this.retrieveTutorials();
-    });
   }
 
   refreshList() {
@@ -120,7 +84,7 @@ class TutorialsList extends Component {
     TutorialDataService.findByTitle(this.state.searchTitle)
       .then((response) => {
         this.setState({
-          tutorials: response.data.tutorials,
+          tutorials: response.data,
         });
         console.log(response.data);
       })
@@ -131,15 +95,8 @@ class TutorialsList extends Component {
 
   render() {
     const { classes } = this.props;
-    const {
-      searchTitle,
-      tutorials,
-      currentTutorial,
-      currentIndex,
-      page,
-      count,
-      pageSize,
-    } = this.state;
+    const { searchTitle, tutorials, currentTutorial, currentIndex } =
+      this.state;
 
     return (
       <div className={classes.form}>
@@ -169,26 +126,7 @@ class TutorialsList extends Component {
           </Grid>
           <Grid item md={4}>
             <h2>Tutorials List</h2>
-            <Grid item>
-              {"Items per Page: "}
-              <select onChange={this.handlePageSizeChange} value={pageSize}>
-                {this.pageSizes.map((size) => (
-                  <option key={size} value={size}>
-                    {size}
-                  </option>
-                ))}
-              </select>
-              <Pagination
-                style={{ marginTop: "15px", marginBottom: "15px" }}
-                count={count}
-                page={page}
-                siblingCount={1}
-                boundaryCount={1}
-                variant="outlined"
-                shape="rounded"
-                onChange={this.handlePageChange}
-              />
-            </Grid>
+
             <div className="list-group">
               {tutorials &&
                 tutorials.map((tutorial, index) => {

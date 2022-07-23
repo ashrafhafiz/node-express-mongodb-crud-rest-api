@@ -57,7 +57,7 @@ class Tutorial extends Component {
     TutorialDataService.get(id)
       .then((response) => {
         this.setState({
-          currentTutorial: response.data,
+          currentTutorial: response.data.result,
         });
         console.log(response.data);
       })
